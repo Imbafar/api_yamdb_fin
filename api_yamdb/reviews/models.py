@@ -1,4 +1,7 @@
 from django.db import models
+from django.contrib.auth import get_user_model
+
+User = get_user_model()
 
 
 class Categories(models.Model):
@@ -41,7 +44,7 @@ class GenresTitles(models.Model):
 
     def __str__(self):
         return f'{self.genre} {self.title}'
-      
+
 
 class Review(models.Model):
     author = models.ForeignKey(
