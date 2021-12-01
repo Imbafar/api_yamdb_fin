@@ -1,6 +1,7 @@
 from rest_framework import serializers
-
-from reviews.models import Categories, Genres, Titles
+from reviews.models import Categories, Genres, Titles, User
+# from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
+# from rest_framework_simplejwt.views import TokenObtainPairView
 
 
 class CategoriesSerializer(serializers.ModelSerializer):
@@ -24,3 +25,12 @@ class TitlesSerializer(serializers.ModelSerializer):
     class Meta:
         model = Titles
         fields = ('id', 'name', 'year', 'description', 'genre', 'category')
+
+
+class UserSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = User
+        fields = (
+            'username', 'email', 'first_name', 'last_name', 'bio', 'role'
+        )
