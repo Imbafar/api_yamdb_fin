@@ -107,7 +107,7 @@ STATIC_URL = '/static/'
 STATICFILES_DIRS = (os.path.join(BASE_DIR, 'static/'),)
 
 
-# AUTH_USER_MODEL = 'reviews.Custom_User'
+AUTH_USER_MODEL = 'reviews.Custom_User'
 
 REST_FRAMEWORK = {
     'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
