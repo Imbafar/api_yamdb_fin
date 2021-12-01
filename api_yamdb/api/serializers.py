@@ -1,8 +1,8 @@
 import datetime as dt
 
 from rest_framework import serializers
-
-from reviews.models import Categories, Genres, GenresTitles, Titles
+from reviews.models import (Categories, Comments, Genres, GenresTitles, Review,
+                            Titles)
 
 
 class CategoriesSerializer(serializers.ModelSerializer):
@@ -49,3 +49,29 @@ class TitlesSerializer(serializers.ModelSerializer):
         if not (0 < value <= year):
             raise serializers.ValidationError('Проверьте год произведения!')
         return value
+
+
+class ReviewSerializer(serializers.ModelSerializer):
+    author = serializers.SlugRelatedField(
+        read_only=True, slug_field='username'
+    )
+
+    class Meta:
+        fields = ('id', 'text', 'author', 'score', 'pub_date',)
+        model = Review
+
+    def validate(self, data):
+        if not 1 <= data['score'] <= 10:
+            raise serializers.ValidationError(
+                'Оценка может быть от 1 до 10!')
+        return data
+
+
+class CommentsSerializer(serializers.ModelSerializer):
+    author = serializers.SlugRelatedField(
+        read_only=True, slug_field='username'
+    )
+
+    class Meta:
+        fields = ('id', 'text', 'author', 'pub_date',)
+        model = Comments
