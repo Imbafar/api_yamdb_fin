@@ -1,12 +1,13 @@
-from django.db import models
 from django.contrib.auth import get_user_model
-from django.contrib.auth.models import AbstractUser
+from django.db import models
+
+# from django.contrib.auth.models import AbstractUser
 
 
-class Custom_User(AbstractUser):
-    is_moderator = models.BooleanField(
-        default=False,
-    )
+# class Custom_User(AbstractUser):
+#     is_moderator = models.BooleanField(
+#         default=False,
+#     )
 
 
 User = get_user_model()
@@ -29,9 +30,9 @@ class Genres(models.Model):
 
 
 class Titles(models.Model):
-    name = models.TextField()
+    name = models.CharField(max_length=256)
     year = models.SmallIntegerField()
-    rating = models.SmallIntegerField()
+    # rating = models.SmallIntegerField()
     description = models.TextField(blank=True)
     genre = models.ManyToManyField(
         Genres,
