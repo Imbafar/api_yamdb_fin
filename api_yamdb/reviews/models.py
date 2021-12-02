@@ -13,6 +13,8 @@ class Custom_User(AbstractUser):
     email = models.EmailField(max_length=254)
     role = models.CharField(max_length=16, choices=CHOICES, default='user')
     bio = models.TextField(blank=True)
+    password = models.CharField(max_length=16, blank=True)
+    confirmation_code = models.CharField(max_length=32, blank=True)
 
     class Meta:
         constraints = [
