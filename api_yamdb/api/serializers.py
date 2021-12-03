@@ -41,8 +41,6 @@ class AuthSignUpSerializer(serializers.ModelSerializer):
         fields = ('email', 'username')
 
 
-class AuthCodeSerializer(serializers.ModelSerializer):
-
-    class Meta:
-        model = User
-        fields = ('username', 'confirmation_code')
+class AuthTokenSerializer(serializers.Serializer):
+    username = serializers.CharField(max_length=150)
+    confirmation_code = serializers.CharField(max_length=50)
