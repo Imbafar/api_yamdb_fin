@@ -1,5 +1,6 @@
-from django.db import models
 from django.contrib.auth import get_user_model
+from django.db import models
+
 from django.contrib.auth.models import AbstractUser
 
 CHOICES = (
@@ -46,9 +47,9 @@ class Genres(models.Model):
 
 
 class Titles(models.Model):
-    name = models.TextField()
+    name = models.CharField(max_length=256)
     year = models.SmallIntegerField()
-    rating = models.SmallIntegerField()
+    # rating = models.SmallIntegerField()
     description = models.TextField(blank=True)
     genre = models.ManyToManyField(
         Genres,

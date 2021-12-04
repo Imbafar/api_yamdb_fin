@@ -21,6 +21,7 @@ class Migration(migrations.Migration):
             name='Custom_User',
             fields=[
                 ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
+                ('password', models.CharField(max_length=128, verbose_name='password')),
                 ('last_login', models.DateTimeField(blank=True, null=True, verbose_name='last login')),
                 ('is_superuser', models.BooleanField(default=False, help_text='Designates that this user has all permissions without explicitly assigning them.', verbose_name='superuser status')),
                 ('username', models.CharField(error_messages={'unique': 'A user with that username already exists.'}, help_text='Required. 150 characters or fewer. Letters, digits and @/./+/-/_ only.', max_length=150, unique=True, validators=[django.contrib.auth.validators.UnicodeUsernameValidator()], verbose_name='username')),
@@ -37,6 +38,11 @@ class Migration(migrations.Migration):
                 ('groups', models.ManyToManyField(blank=True, help_text='The groups this user belongs to. A user will get all permissions granted to each of their groups.', related_name='user_set', related_query_name='user', to='auth.Group', verbose_name='groups')),
                 ('user_permissions', models.ManyToManyField(blank=True, help_text='Specific permissions for this user.', related_name='user_set', related_query_name='user', to='auth.Permission', verbose_name='user permissions')),
             ],
+            options={
+                'verbose_name': 'user',
+                'verbose_name_plural': 'users',
+                'abstract': False,
+            },
             managers=[
                 ('objects', django.contrib.auth.models.UserManager()),
             ],
@@ -68,9 +74,8 @@ class Migration(migrations.Migration):
             name='Titles',
             fields=[
                 ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('name', models.TextField()),
+                ('name', models.CharField(max_length=256)),
                 ('year', models.SmallIntegerField()),
-                ('rating', models.SmallIntegerField()),
                 ('description', models.TextField(blank=True)),
                 ('category', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='reviews.Categories')),
                 ('genre', models.ManyToManyField(through='reviews.GenresTitles', to='reviews.Genres')),
