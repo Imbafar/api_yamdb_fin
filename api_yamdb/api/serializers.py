@@ -2,7 +2,7 @@ import datetime as dt
 
 from rest_framework import serializers
 from reviews.models import (Categories, Comments, Genres, GenresTitles, Review,
-                            Titles)
+                            Titles, User)
 
 
 class CategoriesSerializer(serializers.ModelSerializer):
@@ -33,7 +33,7 @@ class TitlesSerializer(serializers.ModelSerializer):
     class Meta:
         model = Titles
         fields = ('id', 'name', 'year', 'description', 'genre', 'category')
-
+        
     def create(self, validated_data):
         genres = validated_data.pop('genre')
         title = Titles.objects.create(**validated_data)
@@ -75,3 +75,24 @@ class CommentsSerializer(serializers.ModelSerializer):
     class Meta:
         fields = ('id', 'text', 'author', 'pub_date',)
         model = Comments
+
+        
+class UserSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = User
+        fields = (
+            'username', 'email', 'first_name', 'last_name', 'bio', 'role'
+        )
+
+
+class AuthSignUpSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = User
+        fields = ('email', 'username')
+
+
+class AuthTokenSerializer(serializers.Serializer):
+    username = serializers.CharField(max_length=150)
+    confirmation_code = serializers.CharField(max_length=50)

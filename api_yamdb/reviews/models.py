@@ -3,11 +3,28 @@ from django.db import models
 
 from django.contrib.auth.models import AbstractUser
 
+CHOICES = (
+    ('user', 'Пользователь'),
+    ('moderator', 'Модератор'),
+    ('admin', 'Админ'),
+)
+
 
 class Custom_User(AbstractUser):
-    is_moderator = models.BooleanField(
-        default=False,
+    email = models.EmailField(max_length=254)
+    role = models.CharField(
+        max_length=16, choices=CHOICES, default='user'
     )
+    bio = models.TextField(blank=True)
+    confirmation_code = models.CharField(max_length=50, blank=True)
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                fields=['username', 'email'],
+                name='unique_username_email'
+            )
+        ]
 
 
 User = get_user_model()
