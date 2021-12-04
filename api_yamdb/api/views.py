@@ -4,6 +4,7 @@ from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.decorators import api_view, action
 from rest_framework_simplejwt.tokens import RefreshToken
+from rest_framework import filters
 
 import uuid
 
@@ -11,8 +12,8 @@ from django.core.mail import send_mail
 from django.shortcuts import get_object_or_404
 from django_filters.rest_framework import DjangoFilterBackend
 
-from reviews.models import (Categories, Genres, Titles, 
-                            User, Review, Review)
+from reviews.models import (Categories, Genres, Titles,
+                            User, Review, Review, Comments)
 from .serializers import (CategoriesSerializer,
                           GenresSerializer,
                           CommentsSerializer,
@@ -21,7 +22,9 @@ from .serializers import (CategoriesSerializer,
                           UserSerializer,
                           AuthSignUpSerializer,
                           AuthTokenSerializer)
-from .permissions import IsAuthorOrModerPermission, UserForSelf
+from .permissions import (IsAuthorOrModerPermission,
+                          IsUserForSelfPermission,
+                          IsAdminOrStaffPermission)
 
 
 class CategoriesViewSet(viewsets.ModelViewSet):
@@ -84,11 +87,11 @@ class CommentsViewSet(viewsets.ModelViewSet):
         new_queryset = Comments.objects.filter(review=review)
         return new_queryset
 
-      
+
 class UsersViewSet(viewsets.ModelViewSet):
     queryset = User.objects.all()
     serializer_class = UserSerializer
-    permission_classes = (permissions.IsAdminUser,)
+    permission_classes = (IsAdminOrStaffPermission,)
     search_fields = ('=username',)
     lookup_field = 'username'
 
@@ -108,7 +111,7 @@ class UsersViewSet(viewsets.ModelViewSet):
 
     def get_permissions(self):
         if self.action == 'me':
-            return (UserForSelf(),)
+            return (IsUserForSelfPermission(),)
         return super().get_permissions()
 
 
@@ -120,7 +123,7 @@ def generate_and_send_confirmation_code_to_email(username):
         'Код подтвержения для завершения регистрации',
         f'Ваш код для получения JWT токена {user.confirmation_code}',
         'Wizardus@list.ru',
-        ['Elnikit@rambler.ru'],
+        [user.email],
         fail_silently=False,
     )
     user.save()
@@ -141,9 +144,13 @@ def signup_new_user(request):
         user, data=request.data, partial=True
     )
     if serializer.is_valid():
-        serializer.save()
-        generate_and_send_confirmation_code_to_email(username)
-        return Response(serializer.data, status=status.HTTP_200_OK)
+        if serializer.validated_data['email'] == user.email:
+            serializer.save()
+            generate_and_send_confirmation_code_to_email(username)
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        return Response(
+            'Почта указана неверно!', status=status.HTTP_400_BAD_REQUEST
+        )
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 

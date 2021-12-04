@@ -33,7 +33,7 @@ class TitlesSerializer(serializers.ModelSerializer):
     class Meta:
         model = Titles
         fields = ('id', 'name', 'year', 'description', 'genre', 'category')
-        
+
     def create(self, validated_data):
         genres = validated_data.pop('genre')
         title = Titles.objects.create(**validated_data)
@@ -76,7 +76,7 @@ class CommentsSerializer(serializers.ModelSerializer):
         fields = ('id', 'text', 'author', 'pub_date',)
         model = Comments
 
-        
+
 class UserSerializer(serializers.ModelSerializer):
 
     class Meta:
