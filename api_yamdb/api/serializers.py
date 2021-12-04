@@ -9,14 +9,14 @@ class CategoriesSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Categories
-        fields = ('id', 'name', 'slug')
+        fields = ('name', 'slug')
 
 
 class GenresSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Genres
-        fields = ('id', 'name', 'slug')
+        fields = ('name', 'slug')
 
 
 class GenresSlugSerializer(serializers.ModelSerializer):
