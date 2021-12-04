@@ -24,7 +24,8 @@ from .serializers import (CategoriesSerializer,
                           AuthTokenSerializer)
 from .permissions import (IsAuthorOrModerPermission,
                           IsUserForSelfPermission,
-                          IsAdminOrStaffPermission)
+                          IsAdminOrStaffPermission,
+                          AdminOrReadOnly)
 
 
 class CategoriesViewSet(viewsets.ModelViewSet):
@@ -33,6 +34,7 @@ class CategoriesViewSet(viewsets.ModelViewSet):
     filter_backends = (filters.SearchFilter,)
     search_fields = ('name',)
     lookup_field = 'slug'
+    permission_classes = (AdminOrReadOnly,)
 
 
 class GenresViewSet(viewsets.ModelViewSet):
@@ -41,6 +43,7 @@ class GenresViewSet(viewsets.ModelViewSet):
     filter_backends = (filters.SearchFilter,)
     search_fields = ('name',)
     lookup_field = 'slug'
+    permission_classes = (AdminOrReadOnly,)
 
 
 class TitlesViewSet(viewsets.ModelViewSet):
