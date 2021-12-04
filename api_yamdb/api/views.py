@@ -24,7 +24,8 @@ from .serializers import (CategoriesSerializer,
                           AuthTokenSerializer)
 from .permissions import (IsAuthorOrModerPermission,
                           IsUserForSelfPermission,
-                          IsAdminOrStaffPermission)
+                          IsAdminOrStaffPermission,
+                          AdminOrReadOnly)
 
 
 class CategoriesViewSet(viewsets.ModelViewSet):
@@ -32,17 +33,9 @@ class CategoriesViewSet(viewsets.ModelViewSet):
     serializer_class = CategoriesSerializer
     filter_backends = (filters.SearchFilter,)
     search_fields = ('name',)
-    # lookup_field = 'slug'
+    lookup_field = 'slug'
+    permission_classes = (AdminOrReadOnly,)
 
-    # def get_permissions(self):
-    #     if self.action == 'destroy':
-    #         return (IsAdminOrStaffPermission(),)
-    #     return super().get_permissions()
-
-    # def perform_destroy(self, instance): 
-    #     # if instance.author != self.request.user: 
-    #     #     raise PermissionDenied('Изменение чужого контента запрещено!') 
-    #     instance.delete()
 
 class GenresViewSet(viewsets.ModelViewSet):
     queryset = Genres.objects.all()
@@ -50,6 +43,7 @@ class GenresViewSet(viewsets.ModelViewSet):
     filter_backends = (filters.SearchFilter,)
     search_fields = ('name',)
     lookup_field = 'slug'
+    permission_classes = (AdminOrReadOnly,)
 
 
 class TitlesViewSet(viewsets.ModelViewSet):

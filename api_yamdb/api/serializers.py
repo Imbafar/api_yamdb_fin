@@ -20,6 +20,7 @@ class GenresSerializer(serializers.ModelSerializer):
 
 
 class GenresSlugSerializer(serializers.ModelSerializer):
+    queryset = Genres.objects.all()
 
     class Meta:
         model = Genres
@@ -27,11 +28,11 @@ class GenresSlugSerializer(serializers.ModelSerializer):
 
 
 class TitlesSerializer(serializers.ModelSerializer):
-    # genre = GenresSlugSerializer(many=True, required=True)
+    genre = GenresSlugSerializer(many=True, required=True)
     # rating = ...
-    genre = serializers.SlugRelatedField(
-        queryset=Genres.objects.all(), slug_field='slug', many=True
-    )
+    # genre = serializers.SlugRelatedField(
+    #     queryset=Genres.objects.all(), slug_field='slug', many=True
+    # )
     category = serializers.SlugRelatedField(
         queryset=Categories.objects.all(), slug_field='slug'
     )
