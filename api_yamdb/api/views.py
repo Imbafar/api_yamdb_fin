@@ -5,7 +5,6 @@ from rest_framework import status
 from rest_framework.decorators import api_view, action
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework import filters
-
 import uuid
 
 from django.core.mail import send_mail
@@ -101,8 +100,13 @@ class UsersViewSet(viewsets.ModelViewSet):
     search_fields = ('=username',)
     lookup_field = 'username'
 
-    @action(detail=False, methods=['GET', 'PATCH'], url_path='me')
+    @action(detail=False, methods=['GET', 'PATCH', 'DELETE'])
     def me(self, request):
+        if request.method == 'DELETE':
+            return Response(
+                {"detail": "Method \"DELETE\" not allowed."},
+                status=status.HTTP_405_METHOD_NOT_ALLOWED
+            )
         user = User.objects.get(username=request.user.username)
         if request.method == 'PATCH':
             serializer = UserSerializer(user, data=request.data, partial=True)
@@ -141,9 +145,13 @@ def signup_new_user(request):
     if not User.objects.filter(username=username).exists():
         serializer = AuthSignUpSerializer(data=request.data)
         if serializer.is_valid():
-            serializer.save()
-            generate_and_send_confirmation_code_to_email(username)
-            return Response(serializer.data, status=status.HTTP_200_OK)
+            if serializer.validated_data['username'] != 'me':
+                serializer.save()
+                generate_and_send_confirmation_code_to_email(username)
+                return Response(serializer.data, status=status.HTTP_200_OK)
+            return Response(
+                'Username указан невено!', status=status.HTTP_400_BAD_REQUEST
+            )
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
     user = User.objects.get(username=username)
     serializer = AuthSignUpSerializer(
