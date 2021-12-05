@@ -1,7 +1,7 @@
 import datetime as dt
 
 from rest_framework import serializers
-from reviews.models import (Categories, Comments, Genres, GenresTitles, Review,
+from reviews.models import (Categories, Comments, Genres, Review,
                             Titles, User)
 
 
@@ -19,20 +19,12 @@ class GenresSerializer(serializers.ModelSerializer):
         fields = ('name', 'slug')
 
 
-class GenresSlugSerializer(serializers.ModelSerializer):
-    queryset = Genres.objects.all()
-
-    class Meta:
-        model = Genres
-        fields = ('slug',)
-
-
 class TitlesSerializer(serializers.ModelSerializer):
-    genre = GenresSlugSerializer(many=True, required=True)
+    # genre = GenresSlugSerializer(many=True, required=True)
     # rating = ...
-    # genre = serializers.SlugRelatedField(
-    #     queryset=Genres.objects.all(), slug_field='slug', many=True
-    # )
+    genre = serializers.SlugRelatedField(
+        queryset=Genres.objects.all(), slug_field='slug', many=True
+    )
     category = serializers.SlugRelatedField(
         queryset=Categories.objects.all(), slug_field='slug'
     )
@@ -40,16 +32,6 @@ class TitlesSerializer(serializers.ModelSerializer):
     class Meta:
         model = Titles
         fields = ('id', 'name', 'year', 'description', 'genre', 'category')
-
-    def create(self, validated_data):
-        genres = validated_data.pop('genre')
-        title = Titles.objects.create(**validated_data)
-        for genre in genres:
-            current_genre, status = Genres.objects.get_or_create(
-                **genre)
-            GenresTitles.objects.create(
-                genre=current_genre, title=title)
-        return title
 
     def validate_year(self, value):
         year = dt.date.today().year
