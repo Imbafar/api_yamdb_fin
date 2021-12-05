@@ -92,6 +92,12 @@ class UserSerializer(serializers.ModelSerializer):
             'username', 'email', 'first_name', 'last_name', 'bio', 'role'
         )
 
+    def validate(self, data):
+        if data.get('username') == 'me':
+            raise serializers.ValidationError(
+                'Username указан неверно!')
+        return data
+
 
 class AuthSignUpSerializer(serializers.ModelSerializer):
 
