@@ -97,7 +97,11 @@ class UsersViewSet(viewsets.ModelViewSet):
     search_fields = ('=username',)
     lookup_field = 'username'
 
-    @action(detail=False, methods=['GET', 'PATCH', 'DELETE'])
+    @action(
+        detail=False,
+        methods=['GET', 'PATCH', 'DELETE'],
+        permission_classes=(IsUserForSelfPermission,)
+    )
     def me(self, request):
         if request.method == 'DELETE':
             return Response(
@@ -115,11 +119,6 @@ class UsersViewSet(viewsets.ModelViewSet):
             )
         serializer = UserSerializer(user)
         return Response(serializer.data, status=status.HTTP_200_OK)
-
-    def get_permissions(self):
-        if self.action == 'me':
-            return (IsUserForSelfPermission(),)
-        return super().get_permissions()
 
 
 def generate_and_send_confirmation_code_to_email(username):
