@@ -1,11 +1,15 @@
 import datetime as dt
 
 from rest_framework import serializers
+
+from reviews.models import Categories, Comments, Genres, Review, Title, User
+
 from rest_framework.validators import UniqueTogetherValidator
 from django.db.models import Avg
 from django.shortcuts import get_object_or_404
 from reviews.models import (Categories, Comments, Genres, Review,
                             Title, User)
+
 
 
 class CategoriesSerializer(serializers.ModelSerializer):
@@ -37,17 +41,30 @@ class TitlesSerializer(serializers.ModelSerializer):
         fields = ('id', 'name', 'year', 'description',
                   'genre', 'category', 'rating')
 
+
+
     def get_rating(self, obj):
         avg_raiting = obj.reviews.all().aggregate(Avg('score'))
         if avg_raiting['score__avg']:
             return round(avg_raiting['score__avg'])
         return None
 
+
     def validate_year(self, value):
         year = dt.date.today().year
         if not (0 < value <= year):
             raise serializers.ValidationError('Проверьте год произведения!')
         return value
+
+    def get_rating(self, obj):
+        review_ob = Review.objects.filter(title_id=obj.id)
+        ratings = [x.score for x in review_ob]
+        if not ratings:
+            return None
+        total = 0
+        for rating in ratings:
+            total += rating
+        return round(total / len(ratings))
 
 
 class CurrentTitleDefault:
