@@ -99,15 +99,10 @@ class UsersViewSet(viewsets.ModelViewSet):
 
     @action(
         detail=False,
-        methods=['GET', 'PATCH', 'DELETE'],
+        methods=['GET', 'PATCH'],
         permission_classes=(IsUserForSelfPermission,)
     )
     def me(self, request):
-        if request.method == 'DELETE':
-            return Response(
-                {"detail": "Method \"DELETE\" not allowed."},
-                status=status.HTTP_405_METHOD_NOT_ALLOWED
-            )
         user = User.objects.get(username=request.user.username)
         if request.method == 'PATCH':
             serializer = UserSerializer(user, data=request.data, partial=True)
