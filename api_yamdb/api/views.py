@@ -1,33 +1,30 @@
-from rest_framework import viewsets
-from rest_framework import permissions
-from rest_framework.response import Response
-from rest_framework import status
-from rest_framework.decorators import api_view, action
-from rest_framework_simplejwt.tokens import RefreshToken
-from rest_framework import filters
 import uuid
 
 from django.core.mail import send_mail
 from django.shortcuts import get_object_or_404
 from django_filters.rest_framework import DjangoFilterBackend
+from rest_framework import filters, mixins, permissions, status, viewsets
+from rest_framework.decorators import action, api_view
+from rest_framework.response import Response
+from rest_framework_simplejwt.tokens import RefreshToken
+from reviews.models import Categories, Comments, Genres, Review, Title, User
 
-from reviews.models import (Categories, Genres, Title,
-                            User, Review, Comments)
-from .serializers import (CategoriesSerializer,
-                          GenresSerializer,
-                          CommentsSerializer,
-                          ReviewSerializer,
-                          TitlesSerializer,
-                          UserSerializer,
-                          AuthSignUpSerializer,
-                          AuthTokenSerializer)
-from .permissions import (IsAuthorOrModerPermission,
-                          IsUserForSelfPermission,
-                          IsAdminOrStaffPermission,
-                          AdminOrReadOnly)
+from .permissions import (AdminOrReadOnly, IsAdminOrStaffPermission,
+                          IsAuthorOrModerPermission, IsUserForSelfPermission)
+from .serializers import (AuthSignUpSerializer, AuthTokenSerializer,
+                          CategoriesSerializer, CommentsSerializer,
+                          GenresSerializer, ReviewSerializer, TitlesSerializer,
+                          UserSerializer)
 
 
-class CategoriesViewSet(viewsets.ModelViewSet):
+class CreateListDestroyViewSet(mixins.CreateModelMixin,
+                               mixins.ListModelMixin,
+                               mixins.DestroyModelMixin,
+                               viewsets.GenericViewSet):
+    pass
+
+
+class CategoriesViewSet(CreateListDestroyViewSet):
     queryset = Categories.objects.all()
     serializer_class = CategoriesSerializer
     filter_backends = (filters.SearchFilter,)
@@ -36,7 +33,7 @@ class CategoriesViewSet(viewsets.ModelViewSet):
     permission_classes = (AdminOrReadOnly,)
 
 
-class GenresViewSet(viewsets.ModelViewSet):
+class GenresViewSet(CreateListDestroyViewSet):
     queryset = Genres.objects.all()
     serializer_class = GenresSerializer
     filter_backends = (filters.SearchFilter,)
@@ -50,7 +47,7 @@ class TitlesViewSet(viewsets.ModelViewSet):
     serializer_class = TitlesSerializer
     filter_backends = (DjangoFilterBackend,)
     filterset_fields = ('category', 'genre', 'name', 'year')
-    permission_classes = (AdminOrReadOnly,)
+    permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
 
 
 class ReviewViewSet(viewsets.ModelViewSet):
