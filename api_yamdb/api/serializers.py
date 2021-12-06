@@ -2,7 +2,7 @@ import datetime as dt
 
 from rest_framework import serializers
 from reviews.models import (Categories, Comments, Genres, Review,
-                            Titles, User)
+                            Title, User)
 
 
 class CategoriesSerializer(serializers.ModelSerializer):
@@ -30,7 +30,7 @@ class TitlesSerializer(serializers.ModelSerializer):
     )
 
     class Meta:
-        model = Titles
+        model = Title
         fields = ('id', 'name', 'year', 'description', 'genre', 'category')
 
     def validate_year(self, value):
