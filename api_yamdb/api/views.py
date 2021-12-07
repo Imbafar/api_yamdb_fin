@@ -1,41 +1,37 @@
 import uuid
-import django_filters
+
 from django.core.mail import send_mail
 from django.shortcuts import get_object_or_404
+
+import django_filters
 from django_filters.rest_framework import DjangoFilterBackend
-from rest_framework import filters, mixins, permissions, status, viewsets
+from rest_framework import filters, permissions, status, viewsets
 from rest_framework.decorators import action, api_view
 from rest_framework.response import Response
 from rest_framework_simplejwt.tokens import RefreshToken
-from reviews.models import Categories, Comments, Genres, Review, Title, User
+from reviews.models import Category, Comment, Genre, Review, Title, User
 
+from .mixins import CreateListDestroyViewSet
 from .permissions import (AdminOrReadOnly, IsAdminOrStaffPermission,
                           IsAuthorOrModerPermission, IsUserForSelfPermission)
 from .serializers import (AuthSignUpSerializer, AuthTokenSerializer,
-                          CategoriesSerializer, CommentsSerializer,
-                          GenresSerializer, ReviewSerializer, TitlesSerializer,
-                          UserSerializer, OtherTitlesSerializer)
+                          CategorySerializer, CommentSerializer,
+                          GenreSerializer, ReadTitleSerializer,
+                          ReviewSerializer, TitleSerializer, UserSerializer)
 
 
-class CreateListDestroyViewSet(mixins.CreateModelMixin,
-                               mixins.ListModelMixin,
-                               mixins.DestroyModelMixin,
-                               viewsets.GenericViewSet):
-    pass
-
-
-class CategoriesViewSet(CreateListDestroyViewSet):
-    queryset = Categories.objects.all()
-    serializer_class = CategoriesSerializer
+class CategoryViewSet(CreateListDestroyViewSet):
+    queryset = Category.objects.all()
+    serializer_class = CategorySerializer
     filter_backends = (filters.SearchFilter,)
     search_fields = ('name',)
     lookup_field = 'slug'
     permission_classes = (AdminOrReadOnly,)
 
 
-class GenresViewSet(CreateListDestroyViewSet):
-    queryset = Genres.objects.all()
-    serializer_class = GenresSerializer
+class GenreViewSet(CreateListDestroyViewSet):
+    queryset = Genre.objects.all()
+    serializer_class = GenreSerializer
     filter_backends = (filters.SearchFilter,)
     search_fields = ('name',)
     lookup_field = 'slug'
@@ -56,21 +52,17 @@ class TitleFilter(django_filters.FilterSet):
         fields = ('category', 'genre', 'year', 'name')
 
 
-class TitlesViewSet(viewsets.ModelViewSet):
+class TitleViewSet(viewsets.ModelViewSet):
     queryset = Title.objects.all()
-    serializer_class = TitlesSerializer
+    serializer_class = TitleSerializer
     filter_backends = (DjangoFilterBackend,)
     filterset_class = TitleFilter
     permission_classes = (AdminOrReadOnly,)
 
     def get_serializer_class(self):
-        if (
-            self.action == 'create'
-            or self.action == 'update'
-            or self.action == 'partial_update'
-        ):
-            return TitlesSerializer
-        return OtherTitlesSerializer
+        if self.action in ['create', 'update', 'partial_update']:
+            return TitleSerializer
+        return ReadTitleSerializer
 
 
 class ReviewViewSet(viewsets.ModelViewSet):
@@ -91,8 +83,8 @@ class ReviewViewSet(viewsets.ModelViewSet):
         return new_queryset
 
 
-class CommentsViewSet(viewsets.ModelViewSet):
-    serializer_class = CommentsSerializer
+class CommentViewSet(viewsets.ModelViewSet):
+    serializer_class = CommentSerializer
     permission_classes = [
         permissions.IsAuthenticatedOrReadOnly,
         IsAuthorOrModerPermission]
@@ -109,11 +101,11 @@ class CommentsViewSet(viewsets.ModelViewSet):
         title = get_object_or_404(Title, id=title_id)
         review_id = self.kwargs.get('review_id')
         review = get_object_or_404(Review, id=review_id, title=title)
-        new_queryset = Comments.objects.filter(review=review)
+        new_queryset = Comment.objects.filter(review=review)
         return new_queryset
 
 
-class UsersViewSet(viewsets.ModelViewSet):
+class UserViewSet(viewsets.ModelViewSet):
     queryset = User.objects.all()
     serializer_class = UserSerializer
     permission_classes = (IsAdminOrStaffPermission,)

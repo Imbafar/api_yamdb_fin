@@ -1,33 +1,33 @@
-import datetime as dt
-
 from django.db.models import Avg
 from django.shortcuts import get_object_or_404
+from django.utils import timezone
+
 from rest_framework import serializers
 from rest_framework.validators import UniqueTogetherValidator
-from reviews.models import Categories, Comments, Genres, Review, Title, User
+from reviews.models import Category, Comment, Genre, Review, Title, User
 
 
-class CategoriesSerializer(serializers.ModelSerializer):
-
-    class Meta:
-        model = Categories
-        fields = ('name', 'slug')
-
-
-class GenresSerializer(serializers.ModelSerializer):
+class CategorySerializer(serializers.ModelSerializer):
 
     class Meta:
-        model = Genres
-        fields = ('name', 'slug')
+        model = Category
+        exclude = ('id',)
 
 
-class TitlesSerializer(serializers.ModelSerializer):
+class GenreSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = Genre
+        exclude = ('id',)
+
+
+class TitleSerializer(serializers.ModelSerializer):
     rating = serializers.SerializerMethodField()
     genre = serializers.SlugRelatedField(
-        queryset=Genres.objects.all(), slug_field='slug', many=True
+        queryset=Genre.objects.all(), slug_field='slug', many=True
     )
     category = serializers.SlugRelatedField(
-        queryset=Categories.objects.all(), slug_field='slug'
+        queryset=Category.objects.all(), slug_field='slug'
     )
 
     class Meta:
@@ -42,16 +42,16 @@ class TitlesSerializer(serializers.ModelSerializer):
         return None
 
     def validate_year(self, value):
-        year = dt.date.today().year
+        year = timezone.now().year
         if not (0 < value <= year):
             raise serializers.ValidationError('Проверьте год произведения!')
         return value
 
 
-class OtherTitlesSerializer(serializers.ModelSerializer):
+class ReadTitleSerializer(serializers.ModelSerializer):
     rating = serializers.SerializerMethodField()
-    genre = GenresSerializer(read_only=True, many=True)
-    category = CategoriesSerializer(read_only=True)
+    genre = GenreSerializer(read_only=True, many=True)
+    category = CategorySerializer(read_only=True)
 
     class Meta:
         model = Title
@@ -65,7 +65,7 @@ class OtherTitlesSerializer(serializers.ModelSerializer):
         return None
 
     def validate_year(self, value):
-        year = dt.date.today().year
+        year = timezone.now().year
         if not (0 < value <= year):
             raise serializers.ValidationError('Проверьте год произведения!')
         return value
@@ -109,14 +109,14 @@ class ReviewSerializer(serializers.ModelSerializer):
         return data
 
 
-class CommentsSerializer(serializers.ModelSerializer):
+class CommentSerializer(serializers.ModelSerializer):
     author = serializers.SlugRelatedField(
         read_only=True, slug_field='username'
     )
 
     class Meta:
         fields = ('id', 'text', 'author', 'pub_date',)
-        model = Comments
+        model = Comment
 
 
 class UserSerializer(serializers.ModelSerializer):
