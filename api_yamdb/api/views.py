@@ -1,5 +1,5 @@
 import uuid
-
+import django_filters
 from django.core.mail import send_mail
 from django.shortcuts import get_object_or_404
 from django_filters.rest_framework import DjangoFilterBackend
@@ -14,7 +14,7 @@ from .permissions import (AdminOrReadOnly, IsAdminOrStaffPermission,
 from .serializers import (AuthSignUpSerializer, AuthTokenSerializer,
                           CategoriesSerializer, CommentsSerializer,
                           GenresSerializer, ReviewSerializer, TitlesSerializer,
-                          UserSerializer)
+                          UserSerializer, OtherTitlesSerializer)
 
 
 class CreateListDestroyViewSet(mixins.CreateModelMixin,
@@ -42,12 +42,35 @@ class GenresViewSet(CreateListDestroyViewSet):
     permission_classes = (AdminOrReadOnly,)
 
 
+class TitleFilter(django_filters.FilterSet):
+    category = django_filters.CharFilter(field_name='category__slug')
+    genre = django_filters.CharFilter(field_name='genre__slug')
+    name = django_filters.CharFilter(
+        field_name='name',
+        lookup_expr='icontains'
+    )
+    year = django_filters.NumberFilter(field_name='year')
+
+    class Meta:
+        model = Title
+        fields = ('category', 'genre', 'year', 'name')
+
+
 class TitlesViewSet(viewsets.ModelViewSet):
     queryset = Title.objects.all()
     serializer_class = TitlesSerializer
     filter_backends = (DjangoFilterBackend,)
-    filterset_fields = ('category', 'genre', 'name', 'year')
+    filterset_class = TitleFilter
     permission_classes = (AdminOrReadOnly,)
+
+    def get_serializer_class(self):
+        if (
+            self.action == 'create'
+            or self.action == 'update'
+            or self.action == 'partial_update'
+        ):
+            return TitlesSerializer
+        return OtherTitlesSerializer
 
 
 class ReviewViewSet(viewsets.ModelViewSet):
