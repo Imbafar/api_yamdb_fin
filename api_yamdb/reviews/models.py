@@ -1,18 +1,31 @@
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import AbstractUser
+from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
-
-CHOICES = (
-    ('user', 'Пользователь'),
-    ('moderator', 'Модератор'),
-    ('admin', 'Админ'),
-)
+from django.utils import timezone
 
 
-class Custom_User(AbstractUser):
+def current_year():
+    return timezone.now().year
+
+
+def max_value_current_year(value):
+    return MaxValueValidator(current_year())(value)
+
+
+class CustomUser(AbstractUser):
+    USER_ROLE_USER = 'user'
+    USER_ROLE_MODERATOR = 'moderator'
+    USER_ROLE_ADMIN = 'admin'
+
+    USER_ROLE_CHOICES = (
+        (USER_ROLE_USER, 'Пользователь'),
+        (USER_ROLE_MODERATOR, 'Модератор'),
+        (USER_ROLE_ADMIN, 'Админ'),
+    )
     email = models.EmailField(max_length=254, unique=True)
     role = models.CharField(
-        max_length=16, choices=CHOICES, default='user'
+        max_length=16, choices=USER_ROLE_CHOICES, default=USER_ROLE_USER
     )
     bio = models.TextField(blank=True)
     confirmation_code = models.CharField(max_length=50, blank=True)
@@ -29,15 +42,18 @@ class Custom_User(AbstractUser):
 User = get_user_model()
 
 
-class Categories(models.Model):
+class Category(models.Model):
     name = models.CharField(max_length=256)
     slug = models.SlugField(unique=True)
+
+    class Meta:
+        verbose_name_plural = "categories"
 
     def __str__(self):
         return self.name
 
 
-class Genres(models.Model):
+class Genre(models.Model):
     name = models.CharField(max_length=256)
     slug = models.SlugField(unique=True)
 
@@ -47,15 +63,19 @@ class Genres(models.Model):
 
 class Title(models.Model):
     name = models.CharField(max_length=256)
-    year = models.SmallIntegerField()
+    year = models.SmallIntegerField(
+        validators=[MinValueValidator(0), max_value_current_year]
+    )
     description = models.TextField(blank=True, null=True)
     genre = models.ManyToManyField(
-        Genres,
-        db_index=True
+        Genre,
+        db_index=True,
+        blank=True
     )
     category = models.ForeignKey(
-        Categories,
-        on_delete=models.CASCADE,
+        Category,
+        on_delete=models.SET_NULL,
+        null=True,
     )
 
     def __str__(self):
@@ -84,7 +104,7 @@ class Review(models.Model):
         return self.text[:15]
 
 
-class Comments(models.Model):
+class Comment(models.Model):
     author = models.ForeignKey(
         User, on_delete=models.CASCADE, related_name='comments')
     review = models.ForeignKey(
