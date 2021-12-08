@@ -1,10 +1,9 @@
-from django.db.models import Avg
-from django.shortcuts import get_object_or_404
 from django.utils import timezone
 
 from rest_framework import serializers
 from rest_framework.validators import UniqueTogetherValidator
 from reviews.models import Category, Comment, Genre, Review, Title, User
+from .utils import CurrentTitleDefault
 
 
 class CategorySerializer(serializers.ModelSerializer):
@@ -22,7 +21,7 @@ class GenreSerializer(serializers.ModelSerializer):
 
 
 class TitleSerializer(serializers.ModelSerializer):
-    rating = serializers.SerializerMethodField()
+    rating = serializers.IntegerField(read_only=True)
     genre = serializers.SlugRelatedField(
         queryset=Genre.objects.all(), slug_field='slug', many=True
     )
@@ -35,12 +34,6 @@ class TitleSerializer(serializers.ModelSerializer):
         fields = ('id', 'name', 'year', 'description',
                   'genre', 'category', 'rating')
 
-    def get_rating(self, obj):
-        avg_raiting = obj.reviews.all().aggregate(Avg('score'))
-        if avg_raiting['score__avg']:
-            return round(avg_raiting['score__avg'])
-        return None
-
     def validate_year(self, value):
         year = timezone.now().year
         if not (0 < value <= year):
@@ -49,38 +42,20 @@ class TitleSerializer(serializers.ModelSerializer):
 
 
 class ReadTitleSerializer(serializers.ModelSerializer):
-    rating = serializers.SerializerMethodField()
+    rating = serializers.IntegerField(read_only=True)
     genre = GenreSerializer(read_only=True, many=True)
     category = CategorySerializer(read_only=True)
 
     class Meta:
         model = Title
         fields = ('id', 'name', 'year', 'description',
-                  'genre', 'category', 'rating')
-
-    def get_rating(self, obj):
-        avg_raiting = obj.reviews.all().aggregate(Avg('score'))
-        if avg_raiting['score__avg']:
-            return round(avg_raiting['score__avg'])
-        return None
+                  'genre', 'category', 'rating',)
 
     def validate_year(self, value):
         year = timezone.now().year
         if not (0 < value <= year):
             raise serializers.ValidationError('Проверьте год произведения!')
         return value
-
-
-class CurrentTitleDefault:
-    requires_context = True
-
-    def __call__(self, serializer_field):
-        title_id = serializer_field.context['view'].kwargs.get('title_id')
-        title = get_object_or_404(Title, id=title_id)
-        return title
-
-    def __repr__(self):
-        return '%s()' % self.__class__.__name__
 
 
 class ReviewSerializer(serializers.ModelSerializer):

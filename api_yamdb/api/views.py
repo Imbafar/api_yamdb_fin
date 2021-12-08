@@ -1,5 +1,6 @@
 import uuid
 
+from django.db.models import Avg
 from django.core.mail import send_mail
 from django.shortcuts import get_object_or_404
 
@@ -53,7 +54,7 @@ class TitleFilter(django_filters.FilterSet):
 
 
 class TitleViewSet(viewsets.ModelViewSet):
-    queryset = Title.objects.all()
+    queryset = Title.objects.annotate(rating=Avg('reviews__score')).all()
     serializer_class = TitleSerializer
     filter_backends = (DjangoFilterBackend,)
     filterset_class = TitleFilter
@@ -79,7 +80,7 @@ class ReviewViewSet(viewsets.ModelViewSet):
     def get_queryset(self):
         title_id = self.kwargs.get('title_id')
         title = get_object_or_404(Title, id=title_id)
-        new_queryset = Review.objects.filter(title=title)
+        new_queryset = title.reviews.all()
         return new_queryset
 
 
