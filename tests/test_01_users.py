@@ -1,6 +1,5 @@
-from django.contrib.auth import get_user_model
-
 import pytest
+from django.contrib.auth import get_user_model
 
 from .common import auth_client, create_users_api
 
