@@ -1,5 +1,4 @@
 from rest_framework import permissions
-from reviews.models import CustomUser
 
 
 class IsUserForSelfPermission(permissions.BasePermission):
@@ -15,7 +14,7 @@ class IsAdminOrStaffPermission(permissions.BasePermission):
             request.user.is_staff
             or (
                 request.user.is_authenticated
-                and request.user.role == CustomUser.USER_ROLE_ADMIN)
+                and request.user.is_admin)
         )
 
 
@@ -26,8 +25,8 @@ class IsAuthorOrModerPermission(permissions.BasePermission):
             request.method in permissions.SAFE_METHODS
             or obj.author == request.user
             or (request.user.is_authenticated and (
-                request.user.role == CustomUser.USER_ROLE_ADMIN
-                or request.user.role == CustomUser.USER_ROLE_MODERATOR)
+                request.user.is_admin
+                or request.user.is_moderator)
                 )
         )
 
@@ -39,7 +38,7 @@ class AdminOrReadOnly(permissions.BasePermission):
             request.method in permissions.SAFE_METHODS
             or (
                 request.user.is_authenticated
-                and request.user.role == CustomUser.USER_ROLE_ADMIN)
+                and request.user.is_admin)
         )
 
     def has_object_permission(self, request, view, obj):
@@ -47,5 +46,5 @@ class AdminOrReadOnly(permissions.BasePermission):
             request.method in permissions.SAFE_METHODS
             or (
                 request.user.is_authenticated
-                and request.user.role == CustomUser.USER_ROLE_ADMIN)
+                and request.user.is_admin)
         )
