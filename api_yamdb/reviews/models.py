@@ -1,16 +1,14 @@
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import AbstractUser
+from django.core.exceptions import ValidationError
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
 from django.utils import timezone
 
 
-def current_year():
-    return timezone.now().year
-
-
-def max_value_current_year(value):
-    return MaxValueValidator(current_year())(value)
+def year_validator(value):
+    if not (0 < value <= timezone.now().year):
+        raise ValidationError('Проверьте год произведения!')
 
 
 class CustomUser(AbstractUser):
@@ -26,7 +24,7 @@ class CustomUser(AbstractUser):
     email = models.EmailField(
         max_length=254,
         unique=True,
-        verbose_name='Почтовой адрес'
+        verbose_name='Электронная почта'
     )
     role = models.CharField(
         max_length=16,
@@ -121,7 +119,7 @@ class Title(models.Model):
         verbose_name='Навзвание произведения'
     )
     year = models.SmallIntegerField(
-        validators=[MinValueValidator(0), max_value_current_year],
+        validators=[year_validator],
         verbose_name='Год создания произведения'
     )
     description = models.TextField(

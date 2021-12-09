@@ -33,12 +33,6 @@ class TitleSerializer(serializers.ModelSerializer):
         fields = ('id', 'name', 'year', 'description',
                   'genre', 'category')
 
-    def validate_year(self, value):
-        year = timezone.now().year
-        if not (0 < value <= year):
-            raise serializers.ValidationError('Проверьте год произведения!')
-        return value
-
 
 class ReadTitleSerializer(serializers.ModelSerializer):
     rating = serializers.IntegerField(read_only=True)
@@ -49,12 +43,6 @@ class ReadTitleSerializer(serializers.ModelSerializer):
         model = Title
         fields = ('id', 'name', 'year', 'description',
                   'genre', 'category', 'rating',)
-
-    def validate_year(self, value):
-        year = timezone.now().year
-        if not (0 < value <= year):
-            raise serializers.ValidationError('Проверьте год произведения!')
-        return value
 
 
 class ReviewSerializer(serializers.ModelSerializer):
