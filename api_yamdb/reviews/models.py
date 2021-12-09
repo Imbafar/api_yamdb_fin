@@ -54,6 +54,27 @@ class CustomUser(AbstractUser):
             )
         ]
 
+    @property
+    def is_user(self):
+        if self.role == self.USER_ROLE_USER:
+            return True
+        else:
+            return False
+
+    @property
+    def is_moderator(self):
+        if self.role == self.USER_ROLE_MODERATOR:
+            return True
+        else:
+            return False
+
+    @property
+    def is_admin(self):
+        if self.role == self.USER_ROLE_ADMIN:
+            return True
+        else:
+            return False
+
 
 User = get_user_model()
 
