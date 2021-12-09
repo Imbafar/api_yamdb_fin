@@ -1,7 +1,4 @@
-import uuid
-
 import django_filters
-from django.core.mail import send_mail
 from django.db.models import Avg
 from django.shortcuts import get_object_or_404
 from django_filters.rest_framework import DjangoFilterBackend
@@ -18,6 +15,7 @@ from .serializers import (AuthSignUpSerializer, AuthTokenSerializer,
                           CategorySerializer, CommentSerializer,
                           GenreSerializer, ReadTitleSerializer,
                           ReviewSerializer, TitleSerializer, UserSerializer)
+from .utils import generate_and_send_confirmation_code_to_email
 
 
 class CategoryViewSet(CreateListDestroyViewSet):
@@ -118,31 +116,15 @@ class UserViewSet(viewsets.ModelViewSet):
         permission_classes=(IsUserForSelfPermission,)
     )
     def me(self, request):
-        user = User.objects.get(username=request.user.username)
         if request.method == 'PATCH':
-            serializer = UserSerializer(user, data=request.data, partial=True)
-            if serializer.is_valid():
-                serializer.save(role=user.role)
-                return Response(serializer.data, status=status.HTTP_200_OK)
-            return Response(
-                serializer.errors, status=status.HTTP_400_BAD_REQUEST
+            serializer = UserSerializer(
+                request.user, data=request.data, partial=True
             )
-        serializer = UserSerializer(user)
+            if serializer.is_valid(raise_exception=True):
+                serializer.save(role=request.user.role)
+                return Response(serializer.data, status=status.HTTP_200_OK)
+        serializer = UserSerializer(request.user)
         return Response(serializer.data, status=status.HTTP_200_OK)
-
-
-def generate_and_send_confirmation_code_to_email(username):
-    user = User.objects.get(username=username)
-    confirmation_code = str(uuid.uuid3(uuid.NAMESPACE_DNS, username))
-    user.confirmation_code = confirmation_code
-    send_mail(
-        'Код подтвержения для завершения регистрации',
-        f'Ваш код для получения JWT токена {user.confirmation_code}',
-        'Wizardus@list.ru',
-        [user.email],
-        fail_silently=False,
-    )
-    user.save()
 
 
 @api_view(['POST'])
@@ -150,7 +132,7 @@ def signup_new_user(request):
     username = request.data.get('username')
     if not User.objects.filter(username=username).exists():
         serializer = AuthSignUpSerializer(data=request.data)
-        if serializer.is_valid():
+        if serializer.is_valid(raise_exception=True):
             if serializer.validated_data['username'] != 'me':
                 serializer.save()
                 generate_and_send_confirmation_code_to_email(username)
@@ -158,12 +140,11 @@ def signup_new_user(request):
             return Response(
                 'Username указан невено!', status=status.HTTP_400_BAD_REQUEST
             )
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-    user = User.objects.get(username=username)
+    user = get_object_or_404(User, username=username)
     serializer = AuthSignUpSerializer(
         user, data=request.data, partial=True
     )
-    if serializer.is_valid():
+    if serializer.is_valid(raise_exception=True):
         if serializer.validated_data['email'] == user.email:
             serializer.save()
             generate_and_send_confirmation_code_to_email(username)
@@ -171,18 +152,17 @@ def signup_new_user(request):
         return Response(
             'Почта указана неверно!', status=status.HTTP_400_BAD_REQUEST
         )
-    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
 @api_view(['POST'])
 def get_token(request):
     serializer = AuthTokenSerializer(data=request.data)
-    if serializer.is_valid():
+    if serializer.is_valid(raise_exception=True):
         username = serializer.validated_data['username']
         confirmation_code = serializer.validated_data['confirmation_code']
         try:
             user = User.objects.get(username=username)
-        except Exception:
+        except User.DoesNotExist:
             return Response(
                 'Пользователь не найден', status=status.HTTP_404_NOT_FOUND
             )
@@ -193,4 +173,3 @@ def get_token(request):
         return Response(
             'Код подтверждения неверный', status=status.HTTP_400_BAD_REQUEST
         )
-    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
