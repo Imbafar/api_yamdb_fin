@@ -1,4 +1,3 @@
-import django_filters
 from django.db.models import Avg
 from django.shortcuts import get_object_or_404
 from django_filters.rest_framework import DjangoFilterBackend
@@ -6,6 +5,7 @@ from rest_framework import filters, permissions, status, viewsets
 from rest_framework.decorators import action, api_view
 from rest_framework.response import Response
 from rest_framework_simplejwt.tokens import RefreshToken
+
 from reviews.models import Category, Comment, Genre, Review, Title, User
 
 from .mixins import CreateListDestroyViewSet
@@ -16,6 +16,7 @@ from .serializers import (AuthSignUpSerializer, AuthTokenSerializer,
                           GenreSerializer, ReadTitleSerializer,
                           ReviewSerializer, TitleSerializer, UserSerializer)
 from .utils import generate_and_send_confirmation_code_to_email
+from .filters import TitleFilter
 
 
 class CategoryViewSet(CreateListDestroyViewSet):
@@ -34,20 +35,6 @@ class GenreViewSet(CreateListDestroyViewSet):
     search_fields = ('name',)
     lookup_field = 'slug'
     permission_classes = (AdminOrReadOnly,)
-
-
-class TitleFilter(django_filters.FilterSet):
-    category = django_filters.CharFilter(field_name='category__slug')
-    genre = django_filters.CharFilter(field_name='genre__slug')
-    name = django_filters.CharFilter(
-        field_name='name',
-        lookup_expr='icontains'
-    )
-    year = django_filters.NumberFilter(field_name='year')
-
-    class Meta:
-        model = Title
-        fields = ('category', 'genre', 'year', 'name')
 
 
 class TitleViewSet(viewsets.ModelViewSet):
