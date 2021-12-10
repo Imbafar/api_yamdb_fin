@@ -22,8 +22,8 @@ class UserAdmin(admin.ModelAdmin):
         'role'
     )
     list_editable = ('role',)
+    list_filter = ('role',)
     search_fields = ('username',)
-    list_filter = ('email', 'username', 'role')
     empty_value_display = '-пусто-'
 
 
@@ -34,6 +34,7 @@ class TitleAdmin(admin.ModelAdmin):
         'category'
     )
     search_fields = ('name',)
+    list_filter = ('category',)
     empty_value_display = '-пусто-'
 
 

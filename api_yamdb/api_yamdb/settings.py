@@ -108,13 +108,13 @@ REST_FRAMEWORK = {
 
 SIMPLE_JWT = {
     'AUTH_HEADER_TYPES': ('Bearer',),
-    'ACCESS_TOKEN_LIFETIME': timedelta(hours=124),
+    'ACCESS_TOKEN_LIFETIME': timedelta(hours=24),
 }
 
 EMAIL_BACKEND = 'django.core.mail.backends.filebased.EmailBackend'
 
 EMAIL_FILE_PATH = os.path.join(BASE_DIR, 'sent_emails')
 
-USE_TZ = True
-
 EMAIL_ADMIN = 'Admin@admin.com'
+
+USE_TZ = True
